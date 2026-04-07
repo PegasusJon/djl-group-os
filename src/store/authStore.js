@@ -17,7 +17,16 @@ export const useAuthStore = create((set, get) => ({
 
     supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        await get().fetchProfile(session.user)
+        // Only update state if this session belongs to a user that has a
+        // profile row. If signUp fired a spurious SIGNED_IN for a newly
+        // created user (before their profile is inserted), skip it — the
+        // owner's session will fire another SIGNED_IN immediately after.
+        const { data } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle()
+        if (data) await get().fetchProfile(session.user)
       } else if (event === 'SIGNED_OUT') {
         set({ user: null, profile: null, loading: false })
       }

@@ -157,12 +157,26 @@ export default function UserManagement() {
     e.preventDefault()
     setInviting(true)
 
-    // Step 1: Create the Supabase Auth user with signUp
+    // Save the owner's current session so we can restore it after signUp.
+    // supabase.auth.signUp() automatically fires SIGNED_IN for the new user,
+    // which would hijack the current session without this restore step.
+    const { data: { session: ownerSession } } = await supabase.auth.getSession()
+
+    // Step 1: Create the Supabase Auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email:    invite.email,
       password: invite.password,
       options:  { data: { full_name: invite.full_name } },
     })
+
+    // Step 2: Immediately restore the owner's session so the app stays logged
+    // in as the owner and all subsequent queries run under their credentials.
+    if (ownerSession) {
+      await supabase.auth.setSession({
+        access_token:  ownerSession.access_token,
+        refresh_token: ownerSession.refresh_token,
+      })
+    }
 
     if (authError) {
       notify(authError.message, 'error')
@@ -177,7 +191,7 @@ export default function UserManagement() {
       return
     }
 
-    // Step 2: Insert the profile row
+    // Step 3: Insert the profile row (now running as the owner — correct RLS)
     const { error: profileError } = await supabase.from('users').insert({
       id:        userId,
       email:     invite.email,
