@@ -1,6 +1,6 @@
 {
   "name": "djl-group-os",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "DJL Group OS - Multi-location repair shop management",
   "main": "electron/main.js",
   "homepage": "./",

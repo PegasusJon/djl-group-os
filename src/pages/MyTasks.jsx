@@ -14,7 +14,7 @@ export default function MyTasks() {
 
   useEffect(() => {
     if (profile) {
-      fetchTasks(profile.store_id)
+      fetchTasks(profile.store_id, profile.id)
       fetchCompletions(profile.store_id, profile.id)
     }
   }, [profile])

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
-import { CheckSquare, Square, ChevronDown, ChevronUp, Clock, Zap, AlertTriangle } from 'lucide-react'
+import { CheckSquare, Square, ChevronDown, ChevronUp, Clock, Zap, AlertTriangle, UserCheck, Repeat } from 'lucide-react'
 import { useUiStore } from '../store/uiStore'
 import { useTaskStore } from '../store/taskStore'
+import { useAuthStore } from '../store/authStore'
 import { getCurrentWindow, wasCompletedEarly } from '../lib/scheduling'
 
 const FREQ_COLORS = {
@@ -17,6 +18,10 @@ export default function TaskCard({ task, overdue = false }) {
   const [expanded, setExpanded] = useState(false)
   const openModal  = useUiStore(s => s.openModal)
   const { completions, isCompletedInWindow } = useTaskStore()
+  const { profile } = useAuthStore()
+
+  const isAssignedToMe = task.assigned_to && task.assigned_to === profile?.id
+  const assignedByOther = isAssignedToMe && task.created_by !== profile?.id
 
   const completed = isCompletedInWindow(task.id)
   const { start, end } = getCurrentWindow(task)
@@ -60,6 +65,19 @@ export default function TaskCard({ task, overdue = false }) {
             {isEarly && (
               <span className="badge-purple flex items-center gap-1">
                 <Zap size={10} /> Completed early
+              </span>
+            )}
+            {task.one_off && (
+              <span className="badge-yellow flex items-center gap-1">
+                <Repeat size={10} /> One-time
+              </span>
+            )}
+            {isAssignedToMe && (
+              <span className="badge-blue flex items-center gap-1">
+                <UserCheck size={10} />
+                {assignedByOther
+                  ? `Assigned by ${task.creator?.full_name || 'manager'}`
+                  : 'Assigned to you'}
               </span>
             )}
           </div>

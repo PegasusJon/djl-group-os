@@ -8,10 +8,13 @@ export const useTaskStore = create((set, get) => ({
   loading:     false,
   error:       null,
 
-  fetchTasks: async (storeId) => {
+  fetchTasks: async (storeId, userId) => {
     set({ loading: true })
-    let q = supabase.from('tasks').select('*').eq('active', true)
+    let q = supabase.from('tasks').select('*, assigned_user:users!assigned_to(full_name), creator:users!created_by(full_name)').eq('active', true)
     if (storeId) q = q.eq('store_id', storeId)
+    // If userId given, only show tasks visible to that user:
+    // tasks with no specific assignee, OR tasks assigned directly to them
+    if (userId) q = q.or(`assigned_to.is.null,assigned_to.eq.${userId}`)
 
     const { data, error } = await q
     if (error) {
@@ -58,6 +61,12 @@ export const useTaskStore = create((set, get) => ({
         reason:      earlyCompletion ? 'early_completion' : 'task_completion',
         reference_id: data.id,
       })
+      // Deactivate one-off tasks after completion
+      const task = get().tasks.find(t => t.id === taskId)
+      if (task?.one_off) {
+        await supabase.from('tasks').update({ active: false }).eq('id', taskId)
+        set(state => ({ tasks: state.tasks.filter(t => t.id !== taskId) }))
+      }
     }
     return { error }
   },
