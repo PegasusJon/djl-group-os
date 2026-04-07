@@ -13,7 +13,7 @@ function GoalCard({ goal, canEdit, onUpdate }) {
   const [saving, setSaving]   = useState(false)
   const notify = useUiStore(s => s.notify)
 
-  const isPct  = goal.value_type === 'percentage'
+  const isPct  = (goal.value_type ?? 'number') === 'percentage'
   const max    = isPct ? 100 : goal.target_value
   const value  = isPct ? goal.current_value : goal.current_value
   const pct    = Math.min(100, Math.round((goal.current_value / goal.target_value) * 100))
@@ -131,7 +131,7 @@ function CreateGoalForm({ stores, profile, onSaved, onCancel }) {
     const rows = selectedStores.map(s => ({
       title:         form.title,
       description:   form.description,
-      value_type:    form.value_type,
+      ...(form.value_type && { value_type: form.value_type }),
       unit:          isPct ? '%' : form.unit,
       target_value:  parseFloat(s.target_value),
       current_value: 0,

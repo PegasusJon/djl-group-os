@@ -126,7 +126,9 @@ function StoreRow({ store, allUsers, onRefresh }) {
 
   const handleSave = async () => {
     setSaving(true)
-    const { error } = await supabase.from('stores').update(form).eq('id', store.id)
+    const payload = { name: form.name, address: form.address, phone: form.phone }
+    if (form.teams_webhook_url !== undefined) payload.teams_webhook_url = form.teams_webhook_url
+    const { error } = await supabase.from('stores').update(payload).eq('id', store.id)
     if (error) notify(error.message, 'error')
     else { onRefresh(); setEditing(false) }
     setSaving(false)
@@ -240,7 +242,9 @@ export default function StoreManagement() {
   const handleAdd = async (e) => {
     e.preventDefault()
     setSaving(true)
-    const { error } = await supabase.from('stores').insert({ ...form, active: true })
+    const payload = { name: form.name, address: form.address, phone: form.phone, active: true }
+    if (form.teams_webhook_url) payload.teams_webhook_url = form.teams_webhook_url
+    const { error } = await supabase.from('stores').insert(payload)
     if (error) notify(error.message, 'error')
     else { setShowAdd(false); setForm({ name: '', address: '', phone: '', teams_webhook_url: '' }); await loadData() }
     setSaving(false)

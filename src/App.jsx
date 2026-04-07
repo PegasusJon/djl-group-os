@@ -12,6 +12,7 @@ import KnowledgeHub from './pages/KnowledgeHub'
 import UserManagement from './pages/UserManagement'
 import StoreManagement from './pages/StoreManagement'
 import Notification from './components/Notification'
+import UpdateBanner from './components/UpdateBanner'
 
 function PrivateRoute({ children, roles }) {
   const { user, profile, loading } = useAuthStore()
@@ -29,6 +30,7 @@ export default function App() {
   return (
     <>
       <Notification />
+      <UpdateBanner />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
